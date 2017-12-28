@@ -128,7 +128,7 @@ void  DRV_8837_CTR(uint8 mode)
         DRV_SLEEP_PIN = 1;
         DRV_IN1_PIN =0;
         DRV_IN2_PIN =1;
-        delay_ms(5);
+        delay_ms(50);
         DRV_IN1_PIN =0;
         DRV_IN2_PIN =0;
     }
@@ -137,7 +137,7 @@ void  DRV_8837_CTR(uint8 mode)
         DRV_SLEEP_PIN = 1;
         DRV_IN1_PIN =1;
         DRV_IN2_PIN =0;
-        delay_ms(5);
+        delay_ms(50);
         DRV_IN1_PIN =0;
         DRV_IN2_PIN =0;
 	}

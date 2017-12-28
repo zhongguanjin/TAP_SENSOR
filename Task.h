@@ -30,32 +30,28 @@ volatile bit f1min;
 volatile uint8 Man_Stay = 0;                   //人状态
 volatile bit check_first_flg =0;
 volatile bit check_60s_flg =0;
+
 volatile uint16 PS_DATA;
-volatile uint16 ALS_DATA;
+
 volatile uint16 PS_DATA_L;
 volatile uint16 PS_DATA_H;
-volatile uint16 PS_DATA_MAX;
 volatile uint16 ps_adj_user_h;
 volatile uint16 ps_adj_user_l;
+
 uint16  BAT_AD_VAL;
-
 uint8 adj_ok_flg=0;
-
-
 
 
 /*定义输出IO口管脚  */
 
-enum
-{
+enum{
     CLOSE_8837 = 0,
     OPEN_8837,
     SLEEP_8837,
     MAX_8837
 };
 
-enum
-{
+enum{
     MAN_IDLE =0,
     MAN_HERE,
     MAN_LEAVE,
@@ -63,8 +59,7 @@ enum
 };
 
 // 任务结构
-typedef struct _TASK_COMPONENTS
-{
+typedef struct _TASK_COMPONENTS{
     uint8 Run;                 // 程序运行标记：0-不运行，1运行
     uint8 Timer;              // 计时器
     uint8 ItvTime;              // 任务运行间隔时间

@@ -5,7 +5,8 @@
 #include "adc.h"
 #include "uart.h"
 #include "timer.h"
-#include "print.h"
+#include "dbg.h"
+#include "stdio.h"
 
 #define N  10
 uint16 PS_BUF[N];
@@ -328,6 +329,7 @@ void man_sta(void)
             TmpA = 0;
             check_first_flg = 1;
             Man_Stay = MAN_HERE;    //人在洗手
+            dbg("man get,%d\r\n",PS_DATA);
         }
     }
     if((PS_DATA <= PS_DATA_L)&&(Man_Stay==MAN_HERE))//
@@ -338,6 +340,7 @@ void man_sta(void)
         {
             TmpB = 0;
             Man_Stay = MAN_LEAVE; //人洗手离开
+            dbg("man leave,%d\r\n",PS_DATA);
         }
     }
 
@@ -390,7 +393,7 @@ void Task_Chk_Man(void)
         BUF_DATA[8]=0xFF;
         BUF_DATA[9]=0x0F;
         BUF_DATA[10]=0x0F;
-        uart_send_data(BUF_DATA,BUF_LEN);
+        //uart_send_data(BUF_DATA,BUF_LEN);
         man_sta();
         drain_check();
     }

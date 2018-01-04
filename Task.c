@@ -10,12 +10,13 @@
 
 #define N  10
 uint16 PS_BUF[N];
+uint16 BAT_BUF[N];
 #define BUF_LEN  11
-
 uint8 BUF_DATA[BUF_LEN];
 
 uint8 buf_cnt[4];
 uint8 dif_val;
+
 
 void EepromWriteByte(uint8 addr,uint8 data);
 uint8 EepromReadByte(uint8 addr);
@@ -36,7 +37,6 @@ typedef enum _TASK_LIST
     TASK_CHK_MAN,             // 检测人
     TASKS_MAX                // 总的可供分配的定时任务数目
 } TASK_LIST;
-
 
 
 /*****************************************************************************
@@ -124,12 +124,13 @@ void  DRV8837_Init( void )
 
 void  DRV_8837_CTR(uint8 mode)
 {
+    TMR0IE	= 0;
     if(mode == CLOSE_8837 )
     {
         DRV_SLEEP_PIN = 1;
         DRV_IN1_PIN =0;
         DRV_IN2_PIN =1;
-        delay_ms(50);
+        delay_ms(20);
         DRV_IN1_PIN =0;
         DRV_IN2_PIN =0;
     }
@@ -138,7 +139,7 @@ void  DRV_8837_CTR(uint8 mode)
         DRV_SLEEP_PIN = 1;
         DRV_IN1_PIN =1;
         DRV_IN2_PIN =0;
-        delay_ms(50);
+        delay_ms(20);
         DRV_IN1_PIN =0;
         DRV_IN2_PIN =0;
 	}
@@ -148,6 +149,8 @@ void  DRV_8837_CTR(uint8 mode)
         DRV_IN1_PIN =0;
         DRV_IN2_PIN =0;
 	}
+	delay_ms(30);
+	TMR0IE	= 1;
 }
 /*****************************************************************************
  函 数 名  : drain_check
@@ -164,6 +167,7 @@ void  DRV_8837_CTR(uint8 mode)
     修改内容   : 新生成函数
 
 *****************************************************************************/
+
 void drain_check (void)
 {
     if(Man_Stay == MAN_HERE)
@@ -174,16 +178,16 @@ void drain_check (void)
            check_first_flg =0;
            DRV_8837_CTR(OPEN_8837);
         }
-        if((Timer_Stay >= TIME_OUT)&&(check_60s_flg==0))//60s
+        if(Timer_Stay >= TIME_OUT)//60s
         {
-            check_60s_flg =1;
             DRV_8837_CTR(CLOSE_8837);
+            //dbg("stay over time\r\n");
+            Man_Stay = MAN_STAY_CUT;
         }
     }
     if(Man_Stay == MAN_LEAVE)
     {
          Timer_Stay = 0;
-         check_60s_flg =0;
          Man_Stay = MAN_IDLE;
          DRV_8837_CTR(CLOSE_8837);
     }
@@ -249,32 +253,39 @@ void Auto_ADJ_PS(void)
 {
 	static uint16 PS_ADJ_DATA=0;
     static uint8 index =0;
-    static uint16 adj_time_cnt=0;
+    static uint16 adj_time_cnt=0,stay_time=0;
     if((adj_time_cnt++)<=600)//100ms*600=60s
     {
         PS_BUF[index++]= Get_PS_DATA();
-        if(index == N)
+        if(index == N) // 1s
         {
             index=0;
             PS_ADJ_DATA = PS_AD_AVG(PS_BUF, N);
             if((PS_ADJ_DATA>=PS_MIN_DAT)&&(PS_ADJ_DATA<=PS_MAX_DAT))
             {
-                if(dif_val<=5)
+                if(dif_val<=30)//
                 {
-                    PS_DATA_H = (PS_ADJ_DATA + PS_ADJ_DATA/30);
-                    PS_DATA_L = (PS_ADJ_DATA + PS_ADJ_DATA/50);
-                   /* buf_cnt[0] =(PS_DATA_L&0xff00)>>8;
-                    buf_cnt[1] = PS_DATA_L&0x00ff;
-                    buf_cnt[2] =(PS_DATA_H&0xff00)>>8;
-                    buf_cnt[3] = PS_DATA_H&0x00ff;
-                    EepromWriteByte(eeprom_addr, buf_cnt[0]);
-                    EepromWriteByte(eeprom_addr+0x01, buf_cnt[1]);
-                    EepromWriteByte(eeprom_addr+0x02, buf_cnt[2]);
-                    EepromWriteByte(eeprom_addr+0x03, buf_cnt[3]);
-                    */
-                    adj_ok_flg =1;
-                    state = MODE_WORK;
-                 }
+                    if((stay_time++)>=2) // 2*1s =2s
+                    {
+                        PS_DATA_H = (PS_ADJ_DATA + PS_ADJ_DATA/20);
+                        PS_DATA_L = (PS_ADJ_DATA - PS_ADJ_DATA/80);
+                     /* buf_cnt[0] =(PS_DATA_L&0xff00)>>8;
+                        buf_cnt[1] = PS_DATA_L&0x00ff;
+                        buf_cnt[2] =(PS_DATA_H&0xff00)>>8;
+                        buf_cnt[3] = PS_DATA_H&0x00ff;
+                        EepromWriteByte(eeprom_addr, buf_cnt[0]);
+                        EepromWriteByte(eeprom_addr+0x01, buf_cnt[1]);
+                        EepromWriteByte(eeprom_addr+0x02, buf_cnt[2]);
+                        EepromWriteByte(eeprom_addr+0x03, buf_cnt[3]);
+                        */
+                        adj_ok_flg =1;
+                        state = MODE_WORK;
+                    }
+                }
+                else
+                {
+                    stay_time = 0;
+                }
             }
             else
             {
@@ -285,8 +296,8 @@ void Auto_ADJ_PS(void)
     else
     {
         adj_time_cnt = 0;
-        PS_DATA_H = (PS_DEF_DAT + PS_DEF_DAT/30);
-        PS_DATA_L = (PS_DEF_DAT + PS_DEF_DAT/50);
+        PS_DATA_H = (PS_DEF_DAT + PS_DEF_DAT/20);
+        PS_DATA_L = (PS_DEF_DAT - PS_DEF_DAT/80);
         /*
         buf_cnt[0] =(PS_DATA_L&0xff00)>>8;
         buf_cnt[1] = PS_DATA_L&0x00ff;
@@ -302,37 +313,23 @@ void Auto_ADJ_PS(void)
     }
 }
 
-/*****************************************************************************
- 函 数 名  : man_sta
- 功能描述  : 人状态检测函数
- 输入参数  : void
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2017年9月9日
-    作    者   : man_sta
-    修改内容   : 新生成函数
-
-*****************************************************************************/
-void man_sta(void)
+void man_state_update(void)
 {
     static uint8 TmpA =0,TmpB=0;
     if((PS_DATA >= PS_DATA_H)&& (Man_Stay==MAN_IDLE))
     {
         TmpA++;
         TmpB = 0;
-        if(TmpA>=TIMER_Sensitive) //0.2s+延时周期
+        if(TmpA>=TIMER_Sensitive) //0.1s+延时周期
         {
             TmpA = 0;
             check_first_flg = 1;
             Man_Stay = MAN_HERE;    //人在洗手
-            dbg("man get,%d\r\n",PS_DATA);
+            //dbg("man get,%d\r\n",PS_DATA);
+            //dbg("dat_h:[%d},dat_l:[%d]\r\n",PS_DATA_H,PS_DATA_L);
         }
     }
-    if((PS_DATA <= PS_DATA_L)&&(Man_Stay==MAN_HERE))//
+    if((PS_DATA <= PS_DATA_L)&&((Man_Stay==MAN_HERE)||(Man_Stay==MAN_STAY_CUT)))
     {
         TmpB++;
         TmpA = 0;
@@ -340,7 +337,8 @@ void man_sta(void)
         {
             TmpB = 0;
             Man_Stay = MAN_LEAVE; //人洗手离开
-            dbg("man leave,%d\r\n",PS_DATA);
+            //dbg("man leave,%d\r\n",PS_DATA);
+            //dbg("dat_h:[%d},dat_l:[%d]\r\n",PS_DATA_H,PS_DATA_L);
         }
     }
 
@@ -365,6 +363,7 @@ void Task_Chk_Man(void)
 {
    if(state == MODE_WORK) //工作模式
     {
+
         for(uint8 cnt=N;cnt>0;cnt--)
         {
           PS_BUF[cnt]=PS_BUF[cnt-1];
@@ -393,8 +392,8 @@ void Task_Chk_Man(void)
         BUF_DATA[8]=0xFF;
         BUF_DATA[9]=0x0F;
         BUF_DATA[10]=0x0F;
-        //uart_send_data(BUF_DATA,BUF_LEN);
-        man_sta();
+        uart_send_data(BUF_DATA,BUF_LEN);
+        man_state_update();
         drain_check();
     }
 }
@@ -416,16 +415,6 @@ void Task_Chk_Man(void)
 *****************************************************************************/
 void Task_Chk_Bat(void)
 {
-    BAT_AD_VAL =Read_BAT();
-    if( BAT_AD_VAL <= 850) //电压 < 5v左右 关闭脉冲阀
-   	{
-   	   state =MODE_ERR;
-       DRV_8837_CTR(CLOSE_8837);
-   	}
-   	else if(state ==MODE_ERR)
-   	{
-   	    state =MODE_WORK;
-   	}
     if(state == MODE_ADJ_PS)
 	{
 	/*
@@ -442,11 +431,11 @@ void Task_Chk_Bat(void)
            state = MODE_WORK;
 	    }
 	    */
-        //PS_DATA_L = 530;
-        //PS_DATA_H = 560;
-        //state = MODE_WORK;
-        Auto_ADJ_PS(); //每次上电都重新确定阀值
-
+        PS_DATA_H = (PS_DEF_DAT + PS_DEF_DAT/20);
+        PS_DATA_L = (PS_DEF_DAT - PS_DEF_DAT/80);
+        //adj_ok_flg =1;
+        state = MODE_WORK;
+        //Auto_ADJ_PS(); //每次上电都重新确定阀值
 	}
 }
 
@@ -481,7 +470,6 @@ void TaskRemarks(void)
         }
    }
 }
-
 /*****************************************************************************
  函 数 名  : TaskProcess
  功能描述  : 任务处理函数
@@ -508,6 +496,7 @@ void TaskProcess(void)
              TaskComps[i].Run = 0;         // 标志清0
         }
     }
+
 }
 
 

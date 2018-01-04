@@ -127,27 +127,6 @@ void ltr507_init(void)
     LTR507_Write_Byte( PS_THRES_UP_1,0X07);
     LTR507_Write_Byte( PS_THRES_LOW_0,0X00);    // 设置PS_data 下限阀值
     LTR507_Write_Byte( PS_THRES_LOW_1,0X00);
-
-//参数读出来
-/*
-    reg_dat[0] = LTR507_Read_Byte(ALS_CONTR);
-    reg_dat[1] = LTR507_Read_Byte(PS_CONTR);
-    reg_dat[2] = LTR507_Read_Byte(PS_LED);
-    reg_dat[3] = LTR507_Read_Byte(PS_N_PULSES);
-    reg_dat[4] = LTR507_Read_Byte(PS_MEAS_RATE);
-    reg_dat[5] = LTR507_Read_Byte(ALS_MEAS_RATE);
-    reg_dat[6] = LTR507_Read_Byte(ALS_COEFF1_DATA_0);
-    reg_dat[7] = LTR507_Read_Byte(ALS_COEFF1_DATA_1);
-    reg_dat[8] = LTR507_Read_Byte(ALS_COEFF2_DATA_0);
-    reg_dat[9] = LTR507_Read_Byte(ALS_COEFF2_DATA_1);
-    reg_dat[10] = LTR507_Read_Byte(ALS_IRF_CUT_OFF);
-    reg_dat[11] = LTR507_Read_Byte(INTERRUPT);
-    reg_dat[12] = LTR507_Read_Byte(PS_THRES_UP_0);
-    reg_dat[13] = LTR507_Read_Byte(PS_THRES_UP_1);
-    reg_dat[14] = LTR507_Read_Byte(PS_THRES_LOW_0);
-    reg_dat[15] = LTR507_Read_Byte(PS_THRES_LOW_1);
-    //uart_send_data(&reg_dat, reg_len);
-    */
 }
 
 

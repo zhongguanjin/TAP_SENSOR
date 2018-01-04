@@ -49,7 +49,7 @@ typedef enum
    MODE_INIT = 0,
    MODE_ADJ_PS,
    MODE_WORK,
-   MODE_ERR,
+   MODE_LOW_POWER,
    MODE_MAX
 };
 

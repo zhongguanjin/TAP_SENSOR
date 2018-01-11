@@ -28,7 +28,7 @@ uint16 PS_AD_AVG(uint16 *p,uint8 len);
 TASK_COMPONENTS TaskComps[] =
 {
     {0, 100, 100, Task_Chk_Bat},            // 检测电源         100mS检测一次
-    {0, 100, 100,  Task_Chk_Man},            // 检测人           100ms检测一次
+    {0, 50, 50,  Task_Chk_Man},            // 检测人           100ms检测一次
 };
 
 typedef enum _TASK_LIST
@@ -149,7 +149,7 @@ void  DRV_8837_CTR(uint8 mode)
         DRV_IN1_PIN =0;
         DRV_IN2_PIN =0;
 	}
-	delay_ms(30);
+	delay_ms(10);
 	TMR0IE	= 1;
 }
 /*****************************************************************************
@@ -170,6 +170,7 @@ void  DRV_8837_CTR(uint8 mode)
 
 void drain_check (void)
 {
+    static uint16 Timer_Stay =0;
     if(Man_Stay == MAN_HERE)
     {
         Timer_Stay ++;
@@ -333,7 +334,7 @@ void man_state_update(void)
     {
         TmpB++;
         TmpA = 0;
-        if(TmpB >= TIMER_Sensitive)// 人离开时间为0.2s+延时周期
+        //if(TmpB >= TIMER_Sensitive)// 人离开时间为0.2s+延时周期
         {
             TmpB = 0;
             Man_Stay = MAN_LEAVE; //人洗手离开
@@ -363,7 +364,6 @@ void Task_Chk_Man(void)
 {
    if(state == MODE_WORK) //工作模式
     {
-
         for(uint8 cnt=N;cnt>0;cnt--)
         {
           PS_BUF[cnt]=PS_BUF[cnt-1];
@@ -417,7 +417,7 @@ void Task_Chk_Bat(void)
 {
     if(state == MODE_ADJ_PS)
 	{
-	/*
+        /*
 	    ps_adj_user_l= ((EepromReadByte(eeprom_addr)&0x00ff)<<8)+(EepromReadByte(eeprom_addr+0x01)&0x00ff);
 	    ps_adj_user_h=((EepromReadByte(eeprom_addr+0x02)&0x00ff)<<8)+(EepromReadByte(eeprom_addr+0x03)&0x00ff);
 	    if((ps_adj_user_l==0xFFFF)||(ps_adj_user_h==0xFFFF)) //初次使用

@@ -85,6 +85,8 @@ static char *itoa(int value, char *string, int radix)
 */
  void my_dbg(uint8 *Data,...)
  {
+
+ #if 0
     const char *s;
     int d;
     char buf[16];
@@ -138,6 +140,7 @@ static char *itoa(int value, char *string, int radix)
     else
         uart_send_byte(*Data++);
     }
+#endif
  }
 
 

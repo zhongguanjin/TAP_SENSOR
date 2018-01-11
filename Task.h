@@ -6,13 +6,13 @@
 
 
 
-#define TIMER_Sensitive   1  //人体感应时间0.2s，时基100ms
-#define TIME_OUT		  600	//智能止水时间1min,时基100ms
+#define TIMER_Sensitive     2  //人体感应时间0.2s，时基100ms
+#define TIME_OUT		  1200	//智能止水时间1min,时基100ms
 
 
 #define PS_MAX_DAT          2000      // 5cm
-#define PS_DEF_DAT          800       //20CM 白纸板对应黄手心12左右
-#define PS_MIN_DAT          580      //35CM 白纸板对应黄手心25左右
+#define PS_DEF_DAT          530      //15cm左右
+#define PS_MIN_DAT          440      //20cm
 
 #define DRV_IN2_PIN				LATC0
 #define DRV_IN1_PIN				LATC1
@@ -24,7 +24,6 @@
 
 #define   eeprom_addr       0x02
 
-volatile uint16 Timer_Stay;
 /*标记位*/
 volatile bit f5ms;
 volatile uint8 Man_Stay = 0;                   //人状态

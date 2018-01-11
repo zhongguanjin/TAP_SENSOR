@@ -34,7 +34,7 @@ void IIC_Stop(void)
 //        0，接收应答成功
 uint8 IIC_Wait_Ack(void)
 {
-uint8 ucErrTime=0;
+    uint8 ucErrTime=0;
 	SDA_IN();      //SDA设置为输入
 	IIC_SDA=1;
 	delay_us(1);

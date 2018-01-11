@@ -108,9 +108,8 @@ void main(void)
             }
             if(state == MODE_WORK)
             {
-                if(iabs(tab1-BAT_AD_VAL)>=25)
+                if(iabs(tab1-BAT_AD_VAL)>=30)
                 {
-                    //ps_contr_mode(STANDY_MODE);
                     state =MODE_LOW_POWER;
                     DRV_8837_CTR(CLOSE_8837);
                 }

@@ -334,7 +334,7 @@ void man_state_update(void)
     {
         TmpB++;
         TmpA = 0;
-        //if(TmpB >= TIMER_Sensitive)// 人离开时间为0.2s+延时周期
+        if(TmpB >= TIMER_Sensitive)// 人离开时间为0.2s+延时周期
         {
             TmpB = 0;
             Man_Stay = MAN_LEAVE; //人洗手离开
@@ -415,6 +415,7 @@ void Task_Chk_Man(void)
 *****************************************************************************/
 void Task_Chk_Bat(void)
 {
+
     if(state == MODE_ADJ_PS)
 	{
         /*

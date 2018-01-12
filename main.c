@@ -6,7 +6,7 @@
 #include "adc.h"
 #include "LTR507ALS.h"
 #include "I2C_Config.h"
-
+#include "dbg.h"
 /*****************************************************************************
  函 数 名  : Init_Sys
  功能描述  : 系统初始化函数
@@ -56,8 +56,8 @@ void Init_Sys(void)
 
 *****************************************************************************/
 uint8 flg_tab0 = 1;
-int16 tab1;
-
+uint16 low_power_time = 0;
+uint16 low_bat_ad=0;
 /*****************************************************************************
  函 数 名  : iabs
  功能描述  : 求绝对值函数
@@ -84,6 +84,7 @@ int16 iabs(int16 a)
         return a;
     }
 }
+
 void main(void)
 {
 	Init_Sys();
@@ -102,29 +103,42 @@ void main(void)
         {
             f5ms =0;
             BAT_AD_VAL =Read_BAT();
-            if(flg_tab0 ==1){
+            if(flg_tab0 ==1)
+            {
                 flg_tab0=0;
                 tab1=BAT_AD_VAL;
             }
-            if(state == MODE_WORK)
+            if(state == MODE_WORK)//工作状态
             {
-                if(iabs(tab1-BAT_AD_VAL)>=30)
+                if((tab1>BAT_AD_VAL)&&(tab1-BAT_AD_VAL)>=80) //电压值低于基准值(6v)超过0.5v时
                 {
-                    state =MODE_LOW_POWER;
+                    state =MODE_LOW_POWER;            //进入低电压状态 关闭脉冲阀
+                    low_bat_ad=BAT_AD_VAL;    //暂存
                     DRV_8837_CTR(CLOSE_8837);
                 }
             }
-            if(state ==MODE_LOW_POWER)
+            if(state ==MODE_LOW_POWER) //低电压状态
             {
-                if(iabs(tab1-BAT_AD_VAL)<25)
+                low_power_time++;
+                if(low_power_time>=500)   // 5s 后检测电压值稳定在一定范围时，就说明不是真的断电
                 {
+                    if(iabs(low_bat_ad-BAT_AD_VAL)<=50) //
+                    {
+                        flg_tab0 = 1;     //重新确定阀值
+                        low_power_time =0;
+                        state =MODE_WORK;
+                    }
+                }
+                if(iabs(tab1-BAT_AD_VAL)<=50)//如果电压值又恢复到基准值(6v)范围内时，切换成正常模式，说明是电压不稳定
+                {
+                    low_power_time = 0;
                     state =MODE_WORK;
                 }
             }
-         }
+        }
         /* END:   Added by zgj, 2018/1/3 */
 	   TaskProcess();            // 任务处理
-	    CLRWDT();
+	   CLRWDT();
 	}
 }
 

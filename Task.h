@@ -4,9 +4,10 @@
 #include "config.h"
 
 
+uint16 tab1;
 
 
-#define TIMER_Sensitive     2  //人体感应时间0.2s，时基100ms
+#define TIMER_Sensitive    4  //人体感应时间0.2s，时基100ms
 #define TIME_OUT		  1200	//智能止水时间1min,时基100ms
 
 
@@ -36,7 +37,7 @@ volatile uint16 PS_DATA_H;
 volatile uint16 ps_adj_user_h;
 volatile uint16 ps_adj_user_l;
 
-int16  BAT_AD_VAL;
+uint16  BAT_AD_VAL;
 uint8 adj_ok_flg=0;
 
 

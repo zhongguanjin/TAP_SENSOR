@@ -86,7 +86,7 @@ static char *itoa(int value, char *string, int radix)
  void my_dbg(uint8 *Data,...)
  {
 
- #if 0
+ #if 1
     const char *s;
     int d;
     char buf[16];

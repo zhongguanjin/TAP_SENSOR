@@ -127,30 +127,48 @@ void  DRV_8837_CTR(uint8 mode)
     TMR0IE	= 0;
     if(mode == CLOSE_8837 )
     {
+        drv8837_flg =OFF;
         DRV_SLEEP_PIN = 1;
         DRV_IN1_PIN =0;
         DRV_IN2_PIN =1;
         delay_ms(20);
         DRV_IN1_PIN =0;
         DRV_IN2_PIN =0;
+		DRV_SLEEP_PIN = 0; //进入sleep
+
     }
      if(mode == OPEN_8837)
 	{
+        drv8837_flg =ON;
         DRV_SLEEP_PIN = 1;
         DRV_IN1_PIN =1;
         DRV_IN2_PIN =0;
         delay_ms(20);
         DRV_IN1_PIN =0;
         DRV_IN2_PIN =0;
+		DRV_SLEEP_PIN = 0; //进入sleep
 	}
 	if(mode == SLEEP_8837)
 	{
-		DRV_SLEEP_PIN = 0; //进入sleep
         DRV_IN1_PIN =0;
         DRV_IN2_PIN =0;
+		DRV_SLEEP_PIN = 0; //进入sleep
+
 	}
 	delay_ms(10);
 	TMR0IE	= 1;
+}
+
+int16 iabs(int16 a)
+{
+    if(a<0)
+    {
+        return -a;
+    }
+    else
+    {
+        return a;
+    }
 }
 /*****************************************************************************
  函 数 名  : drain_check
@@ -177,7 +195,10 @@ void drain_check (void)
         if(check_first_flg == 1)
         {
            check_first_flg =0;
-           DRV_8837_CTR(OPEN_8837);
+           if(iabs(tab1-BAT_AD_VAL)<=50)   //
+           {
+                DRV_8837_CTR(OPEN_8837);
+           }
         }
         if(Timer_Stay >= TIME_OUT)//60s
         {
@@ -370,6 +391,10 @@ void Task_Chk_Man(void)
         }
         PS_BUF[0]= Get_PS_DATA();
         PS_DATA = PS_AD_AVG(PS_BUF,N);
+        if(PS_DATA == 0) //初始化失败
+        {
+            ltr507_init();
+        }
         /*
         if((PS_DATA >= 1000)&&(LTR507_Read_Byte(PS_LED)&0x03)==LED_CUR_50MA)//检测距离<15cm ,切换20ma的发射功率
         {
@@ -415,7 +440,6 @@ void Task_Chk_Man(void)
 *****************************************************************************/
 void Task_Chk_Bat(void)
 {
-
     if(state == MODE_ADJ_PS)
 	{
         /*

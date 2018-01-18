@@ -111,7 +111,9 @@ void ltr507_init(void)
     //ps_contr_mode(STANDY_MODE);
     //LTR507_Write_Byte( ALS_CONTR,0x00); //standy mode
     ps_contr_mode(ACTIVE_MODE);
+    delay_ms(20);
     LTR507_Write_Byte( ALS_CONTR,0x00);
+    delay_ms(20);
     //设置led的电流及频率 DEFAULT
     ps_led_ctr(LED_FREQ_60K, LED_CUR_50MA);
     LTR507_Write_Byte( PS_N_PULSES,0x7F);       // 设置LED发射脉冲数 127

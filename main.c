@@ -32,7 +32,7 @@ void Init_Sys(void)
 	Init_ADC();
     DRV8837_Init();
 	I2CInit();
-    delay_ms(100);
+    delay_ms(1000);
     ltr507_init();
     delay_ms(20);
 	Init_TMR0();
@@ -73,17 +73,6 @@ uint16 low_bat_ad=0;
     修改内容   : 新生成函数
 
 *****************************************************************************/
-int16 iabs(int16 a)
-{
-    if(a<0)
-    {
-        return -a;
-    }
-    else
-    {
-        return a;
-    }
-}
 
 void main(void)
 {
@@ -110,11 +99,14 @@ void main(void)
             }
             if(state == MODE_WORK)//工作状态
             {
-                if((tab1>BAT_AD_VAL)&&(tab1-BAT_AD_VAL)>=80) //电压值低于基准值(6v)超过0.5v时
+                if((tab1>BAT_AD_VAL)&&(tab1-BAT_AD_VAL)>=120) //电压值低于基准值(6v)超过1v时
                 {
                     state =MODE_LOW_POWER;            //进入低电压状态 关闭脉冲阀
                     low_bat_ad=BAT_AD_VAL;    //暂存
-                    DRV_8837_CTR(CLOSE_8837);
+                    if(drv8837_flg == ON)
+                    {
+                        DRV_8837_CTR(CLOSE_8837);
+                    }
                 }
             }
             if(state ==MODE_LOW_POWER) //低电压状态
@@ -122,7 +114,7 @@ void main(void)
                 low_power_time++;
                 if(low_power_time>=500)   // 5s 后检测电压值稳定在一定范围时，就说明不是真的断电
                 {
-                    if(iabs(low_bat_ad-BAT_AD_VAL)<=50) //
+                    if(iabs(low_bat_ad-BAT_AD_VAL)<=80) //
                     {
                         flg_tab0 = 1;     //重新确定阀值
                         low_power_time =0;

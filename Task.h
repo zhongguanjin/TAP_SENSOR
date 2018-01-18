@@ -19,9 +19,9 @@ uint16 tab1;
 #define DRV_IN1_PIN				LATC1
 #define DRV_SLEEP_PIN           LATC2   // 1=NSLEEP,0-SLEEP
 
-#define     DRV_IN1_OUT()              { ANSC1 = 0 ;TRISC1 = 0; }
-#define     DRV_IN2_OUT()              { ANSC0 = 0 ;TRISC0 = 0; }
-#define     DRV_SLEEP_OUT()            { ANSC2 = 0 ;TRISC2 = 0; }
+   #define     DRV_IN1_OUT()              { ANSC1 = 0 ;TRISC1 = 0; }
+   #define     DRV_IN2_OUT()              { ANSC0 = 0 ;TRISC0 = 0; }
+   #define     DRV_SLEEP_OUT()            { ANSC2 = 0 ;TRISC2 = 0; }
 
 #define   eeprom_addr       0x02
 
@@ -29,6 +29,7 @@ uint16 tab1;
 volatile bit f5ms;
 volatile uint8 Man_Stay = 0;                   //ÈË×´Ì¬
 volatile bit check_first_flg =0;
+volatile bit drv8837_flg;
 
 volatile uint16 PS_DATA;
 
@@ -71,7 +72,7 @@ extern void  DRV8837_Init( void );
 
 extern void TaskProcess(void);
 extern void TaskRemarks(void);
-
+extern int16 iabs(int16 a);
 
 #endif
 

@@ -12,8 +12,8 @@
 
 #define     READ_SDA         RC3
 
-#define		I2CInit()			{	TRISC3 = 0; TRISC4 = 0; TRISA5 = 1; TRISC5 = 0;ANSC3 = 0;\
-                                    LATC3 = 1; LATC4 = 1;LATC5 = 1;\
+#define		I2CInit()			{	TRISC3 = 0; TRISC4 = 0; ANSC3 = 0;\
+                                    LATC3 = 1; LATC4 = 1;\
                                 }
 
 

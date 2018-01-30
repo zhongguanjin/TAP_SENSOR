@@ -10,24 +10,27 @@
 
 #define N  10
 uint16 PS_BUF[N];
-uint16 BAT_BUF[N];
+//uint16 BAT_BUF[N];
 #define BUF_LEN  11
 uint8 BUF_DATA[BUF_LEN];
 
 uint8 buf_cnt[4];
 uint8 dif_val;
 
+uint8 flg_tab0 = 1;
+uint16 low_power_time = 0;
+uint16 low_bat_ad=0;
 
 void EepromWriteByte(uint8 addr,uint8 data);
 uint8 EepromReadByte(uint8 addr);
-void Task_Chk_Bat(void);
+void Task_Chk_Hal(void);
 void Task_Chk_Man(void);
 uint16 PS_AD_AVG(uint16 *p,uint8 len);
 
 
 TASK_COMPONENTS TaskComps[] =
 {
-    {0, 100, 100, Task_Chk_Bat},            // 检测电源         100mS检测一次
+    {0, 10, 10, Task_Chk_Hal},            // 检测         10mS检测一次
     {0, 50, 50,  Task_Chk_Man},            // 检测人           100ms检测一次
 };
 
@@ -124,7 +127,7 @@ void  DRV8837_Init( void )
 
 void  DRV_8837_CTR(uint8 mode)
 {
-    TMR0IE	= 0;
+    //TMR0IE	= 0;
     if(mode == CLOSE_8837 )
     {
         drv8837_flg =OFF;
@@ -148,16 +151,25 @@ void  DRV_8837_CTR(uint8 mode)
         DRV_IN2_PIN =0;
 		DRV_SLEEP_PIN = 0; //进入sleep
 	}
-	if(mode == SLEEP_8837)
-	{
-        DRV_IN1_PIN =0;
-        DRV_IN2_PIN =0;
-		DRV_SLEEP_PIN = 0; //进入sleep
-
-	}
-	delay_ms(10);
-	TMR0IE	= 1;
+	//delay_ms(10);
+	//TMR0IE	= 1;
 }
+
+/*****************************************************************************
+ 函 数 名  : iabs
+ 功能描述  : 求绝对值函数
+ 输入参数  : int a
+ 输出参数  : 无
+ 返 回 值  :
+ 调用函数  :
+ 被调函数  :
+
+ 修改历史      :
+  1.日    期   : 2018年1月3日
+    作    者   : zgj
+    修改内容   : 新生成函数
+
+*****************************************************************************/
 
 int16 iabs(int16 a)
 {
@@ -195,7 +207,7 @@ void drain_check (void)
         if(check_first_flg == 1)
         {
            check_first_flg =0;
-           if(iabs(tab1-BAT_AD_VAL)<=50)   //
+           if(iabs(tab1-BAT_AD_VAL)<80)   //
            {
                 DRV_8837_CTR(OPEN_8837);
            }
@@ -203,7 +215,6 @@ void drain_check (void)
         if(Timer_Stay >= TIME_OUT)//60s
         {
             DRV_8837_CTR(CLOSE_8837);
-            //dbg("stay over time\r\n");
             Man_Stay = MAN_STAY_CUT;
         }
     }
@@ -275,63 +286,43 @@ void Auto_ADJ_PS(void)
 {
 	static uint16 PS_ADJ_DATA=0;
     static uint8 index =0;
-    static uint16 adj_time_cnt=0,stay_time=0;
-    if((adj_time_cnt++)<=600)//100ms*600=60s
+    static uint16 stay_time=0;
+    PS_BUF[index++]= Get_PS_DATA();
+    if(index == N) // 100ms
     {
-        PS_BUF[index++]= Get_PS_DATA();
-        if(index == N) // 1s
+        index=0;
+        PS_ADJ_DATA = PS_AD_AVG(PS_BUF, N);
+        if((PS_ADJ_DATA>=PS_MIN_DAT)&&(PS_ADJ_DATA<=PS_MAX_DAT))
         {
-            index=0;
-            PS_ADJ_DATA = PS_AD_AVG(PS_BUF, N);
-            if((PS_ADJ_DATA>=PS_MIN_DAT)&&(PS_ADJ_DATA<=PS_MAX_DAT))
+            if(dif_val<=35)//
             {
-                if(dif_val<=30)//
+                if((stay_time++)>=50) // 50*100 =5s
                 {
-                    if((stay_time++)>=2) // 2*1s =2s
-                    {
-                        PS_DATA_H = (PS_ADJ_DATA + PS_ADJ_DATA/20);
-                        PS_DATA_L = (PS_ADJ_DATA - PS_ADJ_DATA/80);
-                     /* buf_cnt[0] =(PS_DATA_L&0xff00)>>8;
-                        buf_cnt[1] = PS_DATA_L&0x00ff;
-                        buf_cnt[2] =(PS_DATA_H&0xff00)>>8;
-                        buf_cnt[3] = PS_DATA_H&0x00ff;
-                        EepromWriteByte(eeprom_addr, buf_cnt[0]);
-                        EepromWriteByte(eeprom_addr+0x01, buf_cnt[1]);
-                        EepromWriteByte(eeprom_addr+0x02, buf_cnt[2]);
-                        EepromWriteByte(eeprom_addr+0x03, buf_cnt[3]);
-                        */
-                        adj_ok_flg =1;
-                        state = MODE_WORK;
-                    }
-                }
-                else
-                {
+                    dbg("adj ok \r\n");
                     stay_time = 0;
+                    PS_DATA_H = (PS_ADJ_DATA + PS_ADJ_DATA/20);
+                    PS_DATA_L = (PS_ADJ_DATA + PS_ADJ_DATA/60);
+                    buf_cnt[0] =(PS_DATA_L&0xff00)>>8;
+                    buf_cnt[1] = PS_DATA_L&0x00ff;
+                    buf_cnt[2] =(PS_DATA_H&0xff00)>>8;
+                    buf_cnt[3] = PS_DATA_H&0x00ff;
+                    EepromWriteByte(eeprom_addr, buf_cnt[0]);
+                    EepromWriteByte(eeprom_addr+0x01, buf_cnt[1]);
+                    EepromWriteByte(eeprom_addr+0x02, buf_cnt[2]);
+                    EepromWriteByte(eeprom_addr+0x03, buf_cnt[3]);
+                    adj_ok_flg =1;
+                    state = MODE_WORK;
                 }
             }
             else
             {
-                PS_ADJ_DATA = 0;
+                stay_time = 0;
             }
         }
-    }
-    else
-    {
-        adj_time_cnt = 0;
-        PS_DATA_H = (PS_DEF_DAT + PS_DEF_DAT/20);
-        PS_DATA_L = (PS_DEF_DAT - PS_DEF_DAT/80);
-        /*
-        buf_cnt[0] =(PS_DATA_L&0xff00)>>8;
-        buf_cnt[1] = PS_DATA_L&0x00ff;
-        buf_cnt[2] =(PS_DATA_H&0xff00)>>8;
-        buf_cnt[3] = PS_DATA_H&0x00ff;
-        EepromWriteByte(eeprom_addr, buf_cnt[0]);
-        EepromWriteByte(eeprom_addr+0x01, buf_cnt[1]);
-        EepromWriteByte(eeprom_addr+0x02, buf_cnt[2]);
-        EepromWriteByte(eeprom_addr+0x03, buf_cnt[3]);
-        */
-        adj_ok_flg =1;
-        state = MODE_WORK;
+        else
+        {
+            PS_ADJ_DATA = 0;
+        }
     }
 }
 
@@ -347,8 +338,7 @@ void man_state_update(void)
             TmpA = 0;
             check_first_flg = 1;
             Man_Stay = MAN_HERE;    //人在洗手
-            //dbg("man get,%d\r\n",PS_DATA);
-            //dbg("dat_h:[%d},dat_l:[%d]\r\n",PS_DATA_H,PS_DATA_L);
+            dbg("man get,%d\r\n",PS_DATA);
         }
     }
     if((PS_DATA <= PS_DATA_L)&&((Man_Stay==MAN_HERE)||(Man_Stay==MAN_STAY_CUT)))
@@ -359,8 +349,7 @@ void man_state_update(void)
         {
             TmpB = 0;
             Man_Stay = MAN_LEAVE; //人洗手离开
-            //dbg("man leave,%d\r\n",PS_DATA);
-            //dbg("dat_h:[%d},dat_l:[%d]\r\n",PS_DATA_H,PS_DATA_L);
+            dbg("man leave,%d\r\n",PS_DATA);
         }
     }
 
@@ -391,10 +380,6 @@ void Task_Chk_Man(void)
         }
         PS_BUF[0]= Get_PS_DATA();
         PS_DATA = PS_AD_AVG(PS_BUF,N);
-        if(PS_DATA == 0) //初始化失败
-        {
-            ltr507_init();
-        }
         /*
         if((PS_DATA >= 1000)&&(LTR507_Read_Byte(PS_LED)&0x03)==LED_CUR_50MA)//检测距离<15cm ,切换20ma的发射功率
         {
@@ -417,15 +402,15 @@ void Task_Chk_Man(void)
         BUF_DATA[8]=0xFF;
         BUF_DATA[9]=0x0F;
         BUF_DATA[10]=0x0F;
-        uart_send_data(BUF_DATA,BUF_LEN);
+        //uart_send_data(BUF_DATA,BUF_LEN);
         man_state_update();
         drain_check();
     }
 }
 
 /*****************************************************************************
- 函 数 名  : Task_Chk_Bat
- 功能描述  : 电源检测任务函数
+ 函 数 名  : Task_Chk_Hal
+ 功能描述  : 霍尔开关检测函数
  输入参数  : void
  输出参数  : 无
  返 回 值  :
@@ -438,30 +423,102 @@ void Task_Chk_Man(void)
     修改内容   : 新生成函数
 
 *****************************************************************************/
-void Task_Chk_Bat(void)
+void Task_Chk_Hal(void)
 {
-    if(state == MODE_ADJ_PS)
-	{
-        /*
-	    ps_adj_user_l= ((EepromReadByte(eeprom_addr)&0x00ff)<<8)+(EepromReadByte(eeprom_addr+0x01)&0x00ff);
-	    ps_adj_user_h=((EepromReadByte(eeprom_addr+0x02)&0x00ff)<<8)+(EepromReadByte(eeprom_addr+0x03)&0x00ff);
-	    if((ps_adj_user_l==0xFFFF)||(ps_adj_user_h==0xFFFF)) //初次使用
-	    {
-	        Auto_ADJ_PS();
-	    }
-	    else
-	    {
-	       PS_DATA_L = ps_adj_user_l;
-	       PS_DATA_H =ps_adj_user_h;
-           state = MODE_WORK;
-	    }
-	    */
-        PS_DATA_H = (PS_DEF_DAT + PS_DEF_DAT/20);
-        PS_DATA_L = (PS_DEF_DAT - PS_DEF_DAT/80);
-        //adj_ok_flg =1;
-        state = MODE_WORK;
-        //Auto_ADJ_PS(); //每次上电都重新确定阀值
-	}
+    BAT_AD_VAL =Read_BAT();
+    if(flg_tab0 ==1)
+    {
+        flg_tab0=0;
+        tab1=BAT_AD_VAL;
+    }
+    switch ( state )
+    {
+        case MODE_INIT:
+            {
+                ps_adj_user_l= ((EepromReadByte(eeprom_addr)&0x00ff)<<8)+(EepromReadByte(eeprom_addr+0x01)&0x00ff);
+                ps_adj_user_h=((EepromReadByte(eeprom_addr+0x02)&0x00ff)<<8)+(EepromReadByte(eeprom_addr+0x03)&0x00ff);
+                if((ps_adj_user_l==0xFFFF)||(ps_adj_user_h==0xFFFF)) //初次使用
+                {
+                    dbg("use def val\r\n");
+                    PS_DATA_H = (PS_DEF_DAT + PS_DEF_DAT/20);
+                    PS_DATA_L = (PS_DEF_DAT + PS_DEF_DAT/60);
+                }
+                else
+                {
+                    dbg("use adj val\r\n");
+                    PS_DATA_L = ps_adj_user_l;
+                    PS_DATA_H = ps_adj_user_h;
+                }
+                state = MODE_WORK;
+            }
+            break;
+        case MODE_ADJ_PS :
+            {
+                Auto_ADJ_PS();
+            }
+            break;
+        case MODE_WORK:
+            {
+        	    static uint8 stay_time= 0,tamB=0;
+                if(iabs(tab1-BAT_AD_VAL)>=80) //电压值低于/高于基准值(6v)超过0.6v时
+                {
+                    dbg("go to adj power\r\n");
+                    state =MODE_ADJ_POWER;            //进入低电压状态 关闭脉冲阀
+                    low_bat_ad=BAT_AD_VAL;    //暂存
+                    if(drv8837_flg == ON)
+                    {
+                        DRV_8837_CTR(CLOSE_8837);
+                    }
+                }
+        	    if((HAL248_PIN == 0)&&(hal248_adj_flg ==0))
+        	    {
+        	        tamB=0;
+        	        if((stay_time++)>=200)
+        	        {
+        	             dbg("go to adj psd\r\n");
+        	             stay_time= 0;
+        	             hal248_adj_flg =1;
+                         state = MODE_ADJ_PS;
+                         PS_DATA_H = 0;
+                         PS_DATA_L = 0;
+                    }
+        	    }
+        	    else if((HAL248_PIN == 1)&&(hal248_adj_flg ==1))
+        	    {
+        	        stay_time = 0;
+                    if((tamB++)>=200)
+                    {
+                        tamB= 0;
+                        hal248_adj_flg =0;
+                    }
+        	    }
+            }
+            break;
+        case MODE_ADJ_POWER:
+            {
+                if(iabs(tab1-BAT_AD_VAL)<=50)//如果电压值又恢复到基准值(6v)范围内时，切换成正常模式，说明是电压不稳定
+                {
+                    low_power_time = 0;
+                    dbg("low power->work\r\n");
+                    state =MODE_WORK;
+                }
+                low_power_time++;
+                if(low_power_time>=500)   // 5s 检测电压值稳定在一定范围时，就说明不是真的断电
+                {
+                    //if(iabs(low_bat_ad-BAT_AD_VAL)<=80)
+                    if(BAT_AD_VAL>=640) //电压还在4v左右
+                    {
+                        flg_tab0 = 1;     //重新确定阀值
+                        dbg("new bat ->work\r\n");
+                        state =MODE_WORK;
+                    }
+                    low_power_time=0;
+                }
+            }
+            break;
+        default:
+            break;
+    }
 }
 
 /*****************************************************************************

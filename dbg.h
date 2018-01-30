@@ -5,11 +5,18 @@
 #include "uart.h"
 #include "config.h"
 
-void my_dbg(uint8 *Data,...);
+
+
+void  my_printf(const char *pFormat, ...);
+void  my_dbg(const char *pFormat, ...);
 
 
 
-#define dbg (my_dbg("[%s]-[%d]",__FILE__,__LINE__),my_dbg)
+
+//void my_print(uint8 *Data,...);
+
+
+#define dbg  (my_dbg("[%d]",__LINE__),my_dbg)
 
 
 #endif

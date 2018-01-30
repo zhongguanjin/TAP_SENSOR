@@ -37,6 +37,8 @@ typedef union {
 #define LED_ON     0 //低电平有效
 #define LED_OFF    1
 
+#define OK         1
+#define ERR        0
 
 
 
@@ -49,7 +51,7 @@ typedef enum
    MODE_INIT = 0,
    MODE_ADJ_PS,
    MODE_WORK,
-   MODE_LOW_POWER,
+   MODE_ADJ_POWER,
    MODE_MAX
 };
 

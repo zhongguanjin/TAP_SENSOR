@@ -73,7 +73,7 @@ enum
     LED_CUR_MAX
 };
 
-extern void ltr507_init(void);
+extern uint8 ltr507_init(void);
 
 extern  uint16 Get_PS_DATA(void);
 extern  uint16 Get_ALS_DATA(void);

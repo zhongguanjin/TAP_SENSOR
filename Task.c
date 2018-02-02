@@ -10,27 +10,26 @@
 
 #define N  10
 uint16 PS_BUF[N];
-//uint16 BAT_BUF[N];
+
 #define BUF_LEN  11
 uint8 BUF_DATA[BUF_LEN];
 
 uint8 buf_cnt[4];
 uint8 dif_val;
 
-uint8 flg_tab0 = 1;
-uint16 low_power_time = 0;
-uint16 low_bat_ad=0;
+
 
 void EepromWriteByte(uint8 addr,uint8 data);
 uint8 EepromReadByte(uint8 addr);
-void Task_Chk_Hal(void);
+void Task_State_Hal(void);
 void Task_Chk_Man(void);
 uint16 PS_AD_AVG(uint16 *p,uint8 len);
+void hal248_check(void);
 
 
 TASK_COMPONENTS TaskComps[] =
 {
-    {0, 10, 10, Task_Chk_Hal},            // 检测         10mS检测一次
+    {0, 10, 10, Task_State_Hal},            // 检测         10mS检测一次
     {0, 50, 50,  Task_Chk_Man},            // 检测人           100ms检测一次
 };
 
@@ -325,7 +324,21 @@ void Auto_ADJ_PS(void)
         }
     }
 }
+/*****************************************************************************
+ 函 数 名  : man_state_update
+ 功能描述  : 人状态更新函数
+ 输入参数  : void
+ 输出参数  : 无
+ 返 回 值  :
+ 调用函数  :
+ 被调函数  :
 
+ 修改历史      :
+  1.日    期   : 2018年1月30日
+    作    者   : zgj
+    修改内容   : 新生成函数
+
+*****************************************************************************/
 void man_state_update(void)
 {
     static uint8 TmpA =0,TmpB=0;
@@ -391,6 +404,7 @@ void Task_Chk_Man(void)
             ps_led_ctr(LED_FREQ_60K, LED_CUR_50MA); //采用50ma档位
             delay_ms(10);
         }*/
+        /*
         BUF_DATA[0]=0x0D;
         BUF_DATA[1]=0x0A;
         BUF_DATA[2]=(PS_DATA&0xFF00)>>8;
@@ -402,15 +416,56 @@ void Task_Chk_Man(void)
         BUF_DATA[8]=0xFF;
         BUF_DATA[9]=0x0F;
         BUF_DATA[10]=0x0F;
-        //uart_send_data(BUF_DATA,BUF_LEN);
+        uart_send_data(BUF_DATA,BUF_LEN);
+        */
         man_state_update();
         drain_check();
     }
 }
-
 /*****************************************************************************
- 函 数 名  : Task_Chk_Hal
+ 函 数 名  : hal248_check
  功能描述  : 霍尔开关检测函数
+ 输入参数  : void
+ 输出参数  : 无
+ 返 回 值  :
+ 调用函数  :
+ 被调函数  :
+
+ 修改历史      :
+  1.日    期   : 2018年1月30日
+    作    者   : zgj
+    修改内容   : 新生成函数
+
+*****************************************************************************/
+void hal248_check(void)
+{
+    static uint8 stay_time= 0,tamB=0;
+    if((HAL248_PIN == 0)&&(hal248_adj_flg ==0))
+    {
+        tamB=0;
+        if((stay_time++)>=200)
+        {
+             dbg("go to adj psd\r\n");
+             stay_time= 0;
+             hal248_adj_flg =1;
+             state = MODE_ADJ_PS;
+             PS_DATA_H = 0;
+             PS_DATA_L = 0;
+        }
+    }
+    else if((HAL248_PIN == 1)&&(hal248_adj_flg ==1))
+    {
+        stay_time = 0;
+        if((tamB++)>=200)
+        {
+            tamB= 0;
+            hal248_adj_flg =0;
+        }
+    }
+}
+/*****************************************************************************
+ 函 数 名  : Task_State_Hal
+ 功能描述  : 状态处理函数
  输入参数  : void
  输出参数  : 无
  返 回 值  :
@@ -423,12 +478,12 @@ void Task_Chk_Man(void)
     修改内容   : 新生成函数
 
 *****************************************************************************/
-void Task_Chk_Hal(void)
+void Task_State_Hal(void)
 {
     BAT_AD_VAL =Read_BAT();
-    if(flg_tab0 ==1)
+    if(flg_tab0 ==0)
     {
-        flg_tab0=0;
+        flg_tab0=1;
         tab1=BAT_AD_VAL;
     }
     switch ( state )
@@ -459,43 +514,21 @@ void Task_Chk_Hal(void)
             break;
         case MODE_WORK:
             {
-        	    static uint8 stay_time= 0,tamB=0;
                 if(iabs(tab1-BAT_AD_VAL)>=80) //电压值低于/高于基准值(6v)超过0.6v时
                 {
                     dbg("go to adj power\r\n");
                     state =MODE_ADJ_POWER;            //进入低电压状态 关闭脉冲阀
-                    low_bat_ad=BAT_AD_VAL;    //暂存
                     if(drv8837_flg == ON)
                     {
                         DRV_8837_CTR(CLOSE_8837);
                     }
                 }
-        	    if((HAL248_PIN == 0)&&(hal248_adj_flg ==0))
-        	    {
-        	        tamB=0;
-        	        if((stay_time++)>=200)
-        	        {
-        	             dbg("go to adj psd\r\n");
-        	             stay_time= 0;
-        	             hal248_adj_flg =1;
-                         state = MODE_ADJ_PS;
-                         PS_DATA_H = 0;
-                         PS_DATA_L = 0;
-                    }
-        	    }
-        	    else if((HAL248_PIN == 1)&&(hal248_adj_flg ==1))
-        	    {
-        	        stay_time = 0;
-                    if((tamB++)>=200)
-                    {
-                        tamB= 0;
-                        hal248_adj_flg =0;
-                    }
-        	    }
+                hal248_check();
             }
             break;
         case MODE_ADJ_POWER:
             {
+                static uint16 low_power_time = 0;
                 if(iabs(tab1-BAT_AD_VAL)<=50)//如果电压值又恢复到基准值(6v)范围内时，切换成正常模式，说明是电压不稳定
                 {
                     low_power_time = 0;
@@ -505,10 +538,9 @@ void Task_Chk_Hal(void)
                 low_power_time++;
                 if(low_power_time>=500)   // 5s 检测电压值稳定在一定范围时，就说明不是真的断电
                 {
-                    //if(iabs(low_bat_ad-BAT_AD_VAL)<=80)
                     if(BAT_AD_VAL>=640) //电压还在4v左右
                     {
-                        flg_tab0 = 1;     //重新确定阀值
+                        flg_tab0 = 0;     //重新确定阀值
                         dbg("new bat ->work\r\n");
                         state =MODE_WORK;
                     }

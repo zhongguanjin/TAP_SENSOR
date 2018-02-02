@@ -486,6 +486,7 @@ signed int vformat(char *pStr, size_t length, const char *pFormat, va_list ap)
 /// \param pStr  Storage string.
 /// \param pFormat  Format string.
 //------------------------------------------------------------------------------
+/*
 void  my_printf(const char *pFormat, ...)
 {
     va_list ap;
@@ -504,7 +505,7 @@ void  my_printf(const char *pFormat, ...)
     	uart_send_byte(rt_log_buf[i]);
     }
     va_end(ap);
-}
+}*/
 
  void my_dbg(const char *pFormat, ...)
  {

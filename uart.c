@@ -22,7 +22,7 @@ void Init_Uart(void)
 	//配置RA0/RA1作为UART通信?
 	RXDTSEL = 1;		//1 = RA1 上具有RX/DT 功能
 	TXCKSEL = 1;		//1 = RA0 上具有TX/CK 功能
-	//设置波特?600 @ 8MHZ, 8bit, NC
+	//设置波特9600 @ 8MHZ, 8bit, NC
 	BRGH = 0;
 	BRG16= 0;
 	SPBRGH=0X00;
@@ -34,8 +34,7 @@ void Init_Uart(void)
     TXIF = 0;
     TXIE = 0;           // 关闭发送中断
 	RCIF = 0;
-	RCIE = 0;			// 接收中断
-
+	RCIE = 1;			// 接收中断
 }
 /*****************************************************************************
  函 数 名  : uart_send_byte

@@ -36,7 +36,7 @@ volatile bit f500ms;
 volatile uint8 Man_Stay = 0;                   //ÈË×´Ì¬
 volatile bit check_first_flg =0;
 volatile bit drv8837_flg;
-
+volatile bit flg_tab0 = 0;
 volatile bit hal248_adj_flg;
 
 uint16  BAT_AD_VAL;

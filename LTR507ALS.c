@@ -4,8 +4,7 @@
 #include "uart.h"
 #include "timer.h"
 
-//#define reg_len 20
-//uint8 reg_dat[reg_len];
+
 
 uint16 Get_PS_DATA(void)
 {
@@ -16,7 +15,7 @@ uint16 Get_PS_DATA(void)
     PS_DAT=((data1&0x07)<<8)+data0;
     return PS_DAT;
 }
-
+/*
 uint16 Get_ALS_DATA(void)
 {
     uint8 data0 = 0,data1 =0;
@@ -26,7 +25,7 @@ uint16 Get_ALS_DATA(void)
     ALS_DATA=(data1<<8)+data0;
     return ALS_DATA;
 }
-
+*/
 //IIC写一个字节
 //reg:寄存器地址
 //data:数据
@@ -80,6 +79,7 @@ void ps_led_ctr(uint8 freq, uint8 cur)
     LTR507_Write_Byte(PS_LED,dat);
 }
 //als 使能
+/*
 void als_contr_mode( uint8 mode,uint8 gain)
 {
     if( ACTIVE_MODE == mode )
@@ -91,7 +91,7 @@ void als_contr_mode( uint8 mode,uint8 gain)
         LTR507_Write_Byte( ALS_CONTR,(0x00+(gain<<3))); //standy mode
     }
 }
-
+*/
 // PS 使能
 void ps_contr_mode( uint8 mode )
 {
@@ -108,8 +108,6 @@ void ps_contr_mode( uint8 mode )
 
 uint8 ltr507_init(void)
 {
-    //ps_contr_mode(STANDY_MODE);
-    //LTR507_Write_Byte( ALS_CONTR,0x00); //standy mode
     ps_contr_mode(ACTIVE_MODE);
     delay_ms(20);
     LTR507_Write_Byte( ALS_CONTR,0x00);

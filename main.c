@@ -7,11 +7,9 @@
 #include "LTR507ALS.h"
 #include "I2C_Config.h"
 #include "dbg.h"
-/*
-uint8 flg_tab0 = 1;
-uint16 low_power_time = 0;
-uint16 low_bat_ad=0;
-*/
+
+
+
 /*****************************************************************************
  函 数 名  : Init_Sys
  功能描述  : 系统初始化函数
@@ -44,8 +42,8 @@ void Init_Sys(void)
     }
     delay_ms(20);
 	Init_TMR0();
-    //state = MODE_WORK;
 }
+
 
 /*****************************************************************************
  函 数 名  : main
@@ -125,7 +123,7 @@ void interrupt ISR(void)
 			t_2s = 0;
 			f2s = 1;
 		}
-		if(t_500ms >= 500)
+		if(t_500ms >= 1000)
 		{
             t_500ms = 0;
             f500ms = 1;

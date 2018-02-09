@@ -3,7 +3,7 @@
 
 #include "config.h"
 
-
+#define vision 2
 uint16 tab1;
 
 
@@ -12,12 +12,23 @@ uint16 tab1;
 
 
 #define PS_MAX_DAT          2000      // 5cm
-#define PS_DEF_DAT          700      //20cm×óÓÒ
+#if(vision ==1)
+#define PS_DEF_DAT          600      //15cm×óÓÒ
+#define PS_MIN_DAT          440     //35cm
+#else
+#define PS_DEF_DAT          800      //15cm×óÓÒ
 #define PS_MIN_DAT          510     //35cm
+
+#endif
 
 #define DRV_IN2_PIN				LATC0
 #define DRV_IN1_PIN				LATC1
 #define DRV_SLEEP_PIN           LATC2   // 1=NSLEEP,0-SLEEP
+#define LED2_PIN                LATA4
+
+#define     LED2_OUT()              { ANSA4 = 0 ;TRISA4 = 0; }
+
+
 
 #define     DRV_IN1_OUT()              { ANSC1 = 0 ;TRISC1 = 0; }
 #define     DRV_IN2_OUT()              { ANSC0 = 0 ;TRISC0 = 0; }
@@ -32,7 +43,7 @@ uint16 tab1;
 /* END:   Added by zgj, 2018/1/22 */
 /*±ê¼ÇÎ»*/
 volatile bit f2s;
-volatile bit f500ms;
+volatile bit f1s ;
 volatile uint8 Man_Stay = 0;                   //ÈË×´Ì¬
 volatile bit check_first_flg =0;
 volatile bit drv8837_flg;

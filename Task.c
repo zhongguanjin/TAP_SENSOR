@@ -25,6 +25,7 @@ void Task_State_Hal(void);
 void Task_Chk_Man(void);
 uint16 PS_AD_AVG(uint16 *p,uint8 len);
 void hal248_check(void);
+void led2_flash(void);
 
 
 TASK_COMPONENTS TaskComps[] =
@@ -136,7 +137,7 @@ void  DRV_8837_CTR(uint8 mode)
         delay_ms(20);
         DRV_IN1_PIN =0;
         DRV_IN2_PIN =0;
-		DRV_SLEEP_PIN = 0; //进入sleep
+	DRV_SLEEP_PIN = 0; //进入sleep
 
     }
      if(mode == OPEN_8837)
@@ -150,7 +151,7 @@ void  DRV_8837_CTR(uint8 mode)
         DRV_IN2_PIN =0;
 		DRV_SLEEP_PIN = 0; //进入sleep
 	}
-	//delay_ms(10);
+	//delay_ms(5);
 	//TMR0IE	= 1;
 }
 
@@ -264,7 +265,35 @@ uint16 PS_AD_AVG(uint16 *p,uint8 len)
     }
     return (uint16)(sum/len);
 }
+/*****************************************************************************
+ 函 数 名  : led2_flash
+ 功能描述  : LED2调节闪烁函数
+ 输入参数  : void
+ 输出参数  : 无
+ 返 回 值  :
+ 调用函数  :
+ 被调函数  :
 
+ 修改历史      :
+  1.日    期   : 2018年2月5日
+    作    者   : zgj
+    修改内容   : 新生成函数
+
+*****************************************************************************/
+void led2_flash(void)
+{
+   static uint8 led2_time=0;
+    led2_time++;
+    if((led2_time%100)==40)//400ms
+    {
+        LED2_PIN =ON;
+    }
+    if((led2_time%100)==90)//900ms
+    {
+        LED2_PIN =OFF;
+    }
+
+}
 /*****************************************************************************
  函 数 名  : Auto_ADJ_PSD
  功能描述  : 初始化红外自动校准函数
@@ -281,11 +310,12 @@ uint16 PS_AD_AVG(uint16 *p,uint8 len)
 
 *****************************************************************************/
 
-void Auto_ADJ_PS(void)
+void Auto_ADJ_PS(void) //10ms
 {
 	static uint16 PS_ADJ_DATA=0;
     static uint8 index =0;
     static uint16 stay_time=0;
+    led2_flash();
     PS_BUF[index++]= Get_PS_DATA();
     if(index == N) // 100ms
     {
@@ -311,6 +341,7 @@ void Auto_ADJ_PS(void)
                     EepromWriteByte(eeprom_addr+0x03, buf_cnt[3]);
                     adj_ok_flg =1;
                     state = MODE_WORK;
+                    LED2_PIN =OFF;
                 }
             }
             else
@@ -404,7 +435,7 @@ void Task_Chk_Man(void)
             ps_led_ctr(LED_FREQ_60K, LED_CUR_50MA); //采用50ma档位
             delay_ms(10);
         }*/
-        /*
+
         BUF_DATA[0]=0x0D;
         BUF_DATA[1]=0x0A;
         BUF_DATA[2]=(PS_DATA&0xFF00)>>8;
@@ -416,8 +447,8 @@ void Task_Chk_Man(void)
         BUF_DATA[8]=0xFF;
         BUF_DATA[9]=0x0F;
         BUF_DATA[10]=0x0F;
-        uart_send_data(BUF_DATA,BUF_LEN);
-        */
+        //uart_send_data(BUF_DATA,BUF_LEN);
+
         man_state_update();
         drain_check();
     }
@@ -480,6 +511,7 @@ void hal248_check(void)
 *****************************************************************************/
 void Task_State_Hal(void)
 {
+
     BAT_AD_VAL =Read_BAT();
     if(flg_tab0 ==0)
     {
@@ -496,7 +528,7 @@ void Task_State_Hal(void)
                 {
                     dbg("use def val\r\n");
                     PS_DATA_H = (PS_DEF_DAT + PS_DEF_DAT/20);
-                    PS_DATA_L = (PS_DEF_DAT + PS_DEF_DAT/60);
+                    PS_DATA_L = (PS_DEF_DAT + PS_DEF_DAT/80);//60
                 }
                 else
                 {
@@ -505,6 +537,7 @@ void Task_State_Hal(void)
                     PS_DATA_H = ps_adj_user_h;
                 }
                 state = MODE_WORK;
+                LED2_PIN = OFF;
             }
             break;
         case MODE_ADJ_PS :
@@ -514,16 +547,29 @@ void Task_State_Hal(void)
             break;
         case MODE_WORK:
             {
-                if(iabs(tab1-BAT_AD_VAL)>=80) //电压值低于/高于基准值(6v)超过0.6v时
-                {
-                    dbg("go to adj power\r\n");
-                    state =MODE_ADJ_POWER;            //进入低电压状态 关闭脉冲阀
-                    if(drv8837_flg == ON)
-                    {
-                        DRV_8837_CTR(CLOSE_8837);
-                    }
-                }
+                static uint8 power_cnt=0;            
+			if(iabs(tab1-BAT_AD_VAL)>=80) //电压值低于/高于基准值(6v)超过0.6v时
+			{
+				power_cnt++;
+				if(power_cnt>=3)
+				{
+					dbg("go to adj power\r\n");
+					state =MODE_ADJ_POWER;            //进入低电压状态 关闭脉冲阀
+					if(drv8837_flg == ON)
+                        		{
+                        			 DRV_8837_CTR(CLOSE_8837);
+                        		}
+				}
+				
+			}
+			else
+			{
+				power_cnt=0;
+			}
+                
+#if(vision!=1)
                 hal248_check();
+#endif
             }
             break;
         case MODE_ADJ_POWER:

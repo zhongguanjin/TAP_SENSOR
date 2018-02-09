@@ -9,7 +9,7 @@
 #include "dbg.h"
 
 
-
+static uint16 t_2s=0;
 /*****************************************************************************
  函 数 名  : Init_Sys
  功能描述  : 系统初始化函数
@@ -39,6 +39,12 @@ void Init_Sys(void)
     if(ltr507_init()==OK)
     {
         state = MODE_INIT;
+        LED2_OUT();
+        LED2_PIN =ON;
+    }
+    else
+    {
+        state = MODE_ERR;
     }
     delay_ms(20);
 	Init_TMR0();
@@ -68,24 +74,43 @@ void main(void)
 	HAL248_IN(); // 霍尔开关配置成输入
 	while(1)
 	{
+
+	    static uint8 fb_flg = 0;
+	    if(state == MODE_ERR)
+	    {
+            if(ltr507_init()==OK)
+            {
+                state = MODE_INIT;
+                LED2_OUT();
+                LED2_PIN =ON;
+            }
+            else
+            {
+                state = MODE_ERR;
+            }
+        }
         if(adj_ok_flg ==1)
         {
+           adj_ok_flg =0;
+           fb_flg=1;
+           t_2s =0;
+           f2s = 0;
            DRV_8837_CTR(OPEN_8837);
         }
         /* BEGIN: Added by zgj, 2018/1/3 */
         if(f2s ==1)
         {
             f2s =0;
-            if(adj_ok_flg ==1)
+            if(fb_flg ==1)
             {
-               adj_ok_flg =0;
+               fb_flg=0;
                dbg("auto open tap 2s\r\n");
                DRV_8837_CTR(CLOSE_8837);
             }
         }
-        if(f500ms == 1)
+        if(f1s  == 1)
         {
-            f500ms =0;
+            f1s  =0;
             dbg("state:(%d)-bat:(%d)-[%d][%d]->%d\r\n",state,BAT_AD_VAL,PS_DATA_H,PS_DATA_L,HAL248_PIN);
         }
         /* END:   Added by zgj, 2018/1/3 */
@@ -111,22 +136,22 @@ void main(void)
 *****************************************************************************/
 void interrupt ISR(void)
 {
-	static uint16 t_2s=0,t_500ms=0;
+	static uint16 f_1s =0;
 	if(TMR0IF && TMR0IE)
 	{
 		TMR0IF = 0;
 		t_2s++;
-		t_500ms++;
+		f_1s ++;
 		TMR0 = TMR0+TMR0_VALUE;
 		if(t_2s >= 2000)
 		{
 			t_2s = 0;
 			f2s = 1;
 		}
-		if(t_500ms >= 1000)
+		if(f_1s  >= 1000)
 		{
-            t_500ms = 0;
-            f500ms = 1;
+            f_1s  = 0;
+            f1s  = 1;
 		}
 	    TaskRemarks();  //任务标记轮询处理
 	}

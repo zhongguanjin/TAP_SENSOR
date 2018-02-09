@@ -52,6 +52,7 @@ typedef enum
    MODE_ADJ_PS,
    MODE_WORK,
    MODE_ADJ_POWER,
+   MODE_ERR,
    MODE_MAX
 };
 

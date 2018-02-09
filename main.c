@@ -74,7 +74,6 @@ void main(void)
 	HAL248_IN(); // 霍尔开关配置成输入
 	while(1)
 	{
-
 	    static uint8 fb_flg = 0;
 	    if(state == MODE_ERR)
 	    {

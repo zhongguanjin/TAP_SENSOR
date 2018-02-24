@@ -38,9 +38,9 @@ void Init_Sys(void)
     delay_ms(1000);
     if(ltr507_init()==OK)
     {
-        state = MODE_INIT;
         LED2_OUT();
         LED2_PIN =ON;
+        state = MODE_INIT;
     }
     else
     {
@@ -48,6 +48,8 @@ void Init_Sys(void)
     }
     delay_ms(20);
 	Init_TMR0();
+	HAL248_IN(); // 霍尔开关配置成输入
+	INTERRUPT_IN();
 }
 
 
@@ -69,19 +71,18 @@ void Init_Sys(void)
 void main(void)
 {
 	Init_Sys();
-	//asm("sleep"); //休眠
 	dbg("init ok\r\n");
-	HAL248_IN(); // 霍尔开关配置成输入
 	while(1)
 	{
 	    static uint8 fb_flg = 0;
+        //asm("sleep");
 	    if(state == MODE_ERR)
 	    {
             if(ltr507_init()==OK)
             {
-                state = MODE_INIT;
                 LED2_OUT();
                 LED2_PIN =ON;
+                state = MODE_INIT;
             }
             else
             {
@@ -110,11 +111,11 @@ void main(void)
         if(f1s  == 1)
         {
             f1s  =0;
-            dbg("state:(%d)-bat:(%d)-[%d][%d]->%d\r\n",state,BAT_AD_VAL,PS_DATA_H,PS_DATA_L,HAL248_PIN);
+            dbg("state:(%d)-bat:(%d)-[%d][%d]-[%d],pin:%d\r\n",state,BAT_AD_VAL,PS_DATA_H,PS_DATA_L,PS_DATA,INTERRUPT_PIN);
         }
         /* END:   Added by zgj, 2018/1/3 */
-	   TaskProcess();            // 任务处理
-	   CLRWDT();
+	    TaskProcess();            // 任务处理
+	    CLRWDT();
 	}
 }
 

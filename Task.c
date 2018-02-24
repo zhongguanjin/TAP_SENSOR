@@ -377,7 +377,7 @@ void man_state_update(void)
     {
         TmpA++;
         TmpB = 0;
-        if(TmpA>=TIMER_Sensitive) //0.1s+延时周期
+        if(TmpA>=TIMER_Sensitive) //0.2s+延时周期
         {
             TmpA = 0;
             check_first_flg = 1;
@@ -389,7 +389,7 @@ void man_state_update(void)
     {
         TmpB++;
         TmpA = 0;
-        if(TmpB >= TIMER_Sensitive)// 人离开时间为0.2s+延时周期
+        if(TmpB >= 8)// 人离开时间为0.4s+延时周期
         {
             TmpB = 0;
             Man_Stay = MAN_LEAVE; //人洗手离开
@@ -424,18 +424,6 @@ void Task_Chk_Man(void)
         }
         PS_BUF[0]= Get_PS_DATA();
         PS_DATA = PS_AD_AVG(PS_BUF,N);
-        /*
-        if((PS_DATA >= 1000)&&(LTR507_Read_Byte(PS_LED)&0x03)==LED_CUR_50MA)//检测距离<15cm ,切换20ma的发射功率
-        {
-            ps_led_ctr(LED_FREQ_60K, LED_CUR_20MA); //采用20ma档位
-            delay_ms(10);
-        }
-        else if((LTR507_Read_Byte(PS_LED)&0x03)!=LED_CUR_50MA)
-        {
-            ps_led_ctr(LED_FREQ_60K, LED_CUR_50MA); //采用50ma档位
-            delay_ms(10);
-        }*/
-
         BUF_DATA[0]=0x0D;
         BUF_DATA[1]=0x0A;
         BUF_DATA[2]=(PS_DATA&0xFF00)>>8;
@@ -448,7 +436,6 @@ void Task_Chk_Man(void)
         BUF_DATA[9]=0x0F;
         BUF_DATA[10]=0x0F;
         //uart_send_data(BUF_DATA,BUF_LEN);
-
         man_state_update();
         drain_check();
     }
@@ -511,7 +498,6 @@ void hal248_check(void)
 *****************************************************************************/
 void Task_State_Hal(void)
 {
-
     BAT_AD_VAL =Read_BAT();
     if(flg_tab0 ==0)
     {
@@ -547,26 +533,25 @@ void Task_State_Hal(void)
             break;
         case MODE_WORK:
             {
-                static uint8 power_cnt=0;            
-			if(iabs(tab1-BAT_AD_VAL)>=80) //电压值低于/高于基准值(6v)超过0.6v时
-			{
-				power_cnt++;
-				if(power_cnt>=3)
-				{
-					dbg("go to adj power\r\n");
-					state =MODE_ADJ_POWER;            //进入低电压状态 关闭脉冲阀
-					if(drv8837_flg == ON)
-                        		{
-                        			 DRV_8837_CTR(CLOSE_8837);
-                        		}
-				}
-				
-			}
-			else
-			{
-				power_cnt=0;
-			}
-                
+                static uint8 power_cnt=0;
+    			if(iabs(tab1-BAT_AD_VAL)>=80) //电压值低于/高于基准值(6v)超过0.6v时
+    			{
+    				power_cnt++;
+    				if(power_cnt>=3)
+    				{
+    					dbg("go to adj power\r\n");
+    					state =MODE_ADJ_POWER;            //进入低电压状态 关闭脉冲阀
+    					if(drv8837_flg == ON)
+                		{
+                			 DRV_8837_CTR(CLOSE_8837);
+                		}
+    				}
+
+    			}
+    			else
+    			{
+    				power_cnt=0;
+    			}
 #if(vision!=1)
                 hal248_check();
 #endif

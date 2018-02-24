@@ -40,6 +40,8 @@ uint16 tab1;
 /* BEGIN: Added by zgj, 2018/1/22 */
 #define   HAL248_PIN    RC5
 #define   HAL248_IN()         {TRISC5 = 1;} //输入
+#define   INTERRUPT_PIN    RA5
+#define   INTERRUPT_IN()      {TRISA5 = 1;} //输入
 /* END:   Added by zgj, 2018/1/22 */
 /*标记位*/
 volatile bit f2s;
@@ -59,7 +61,6 @@ volatile uint16 PS_DATA_L;
 volatile uint16 PS_DATA_H;
 volatile uint16 ps_adj_user_h;
 volatile uint16 ps_adj_user_l;
-
 
 
 /*定义输出IO口管脚  */

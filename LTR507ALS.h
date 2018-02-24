@@ -84,6 +84,7 @@ extern uint8 LTR507_Write_Byte(uint8 reg,uint8 data);
  void ps_contr_mode( uint8 mode );
 
 extern void ps_led_ctr(uint8 freq, uint8 cur);
+extern uint8 get_reg_val(uint8 reg);
 
 
 #endif

@@ -15,6 +15,12 @@ uint16 Get_PS_DATA(void)
     PS_DAT=((data1&0x07)<<8)+data0;
     return PS_DAT;
 }
+uint8 get_reg_val(uint8 reg)
+{
+  uint8 val =0;
+  val=LTR507_Read_Byte(reg);
+  return val;
+}
 /*
 uint16 Get_ALS_DATA(void)
 {
@@ -122,11 +128,12 @@ uint8 ltr507_init(void)
     LTR507_Write_Byte( ALS_COEFF2_DATA_0,0XC8);    // 设置ALS_DATA_CH2的序数
     LTR507_Write_Byte( ALS_COEFF2_DATA_1,0XFB);    // 设置ALS_DATA_CH2的序数
     LTR507_Write_Byte( ALS_IRF_CUT_OFF,0XD0);    // 设置ALS_DATA的极限值
-    LTR507_Write_Byte( INTERRUPT,0X08);         // 设置中断
-    LTR507_Write_Byte( PS_THRES_UP_0,0XFF);    // 设置PS_data 上限阀值
-    LTR507_Write_Byte( PS_THRES_UP_1,0X07);
+    LTR507_Write_Byte( INTERRUPT,0X0B);         // 设置中断
+    LTR507_Write_Byte( PS_THRES_UP_0,0X2A);    // 设置PS_data 上限阀值
+    LTR507_Write_Byte( PS_THRES_UP_1,0X03);
     LTR507_Write_Byte( PS_THRES_LOW_0,0X00);    // 设置PS_data 下限阀值
     LTR507_Write_Byte( PS_THRES_LOW_1,0X00);
+    LTR507_Write_Byte( INTERRUPT_PERSIST,0X00);
     delay_ms(5);
     if(Get_PS_DATA()!=0)
     {

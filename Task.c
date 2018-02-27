@@ -137,8 +137,7 @@ void  DRV_8837_CTR(uint8 mode)
         delay_ms(20);
         DRV_IN1_PIN =0;
         DRV_IN2_PIN =0;
-	DRV_SLEEP_PIN = 0; //进入sleep
-
+	    DRV_SLEEP_PIN = 0; //进入sleep
     }
      if(mode == OPEN_8837)
 	{
@@ -223,6 +222,8 @@ void drain_check (void)
          Timer_Stay = 0;
          Man_Stay = MAN_IDLE;
          DRV_8837_CTR(CLOSE_8837);
+         asm("sleep");
+         _nop();
     }
 }
 
@@ -330,7 +331,7 @@ void Auto_ADJ_PS(void) //10ms
                     dbg("adj ok \r\n");
                     stay_time = 0;
                     PS_DATA_H = (PS_ADJ_DATA + PS_ADJ_DATA/20);
-                    PS_DATA_L = (PS_ADJ_DATA + PS_ADJ_DATA/60);
+                    PS_DATA_L = (PS_ADJ_DATA + PS_ADJ_DATA/40);
                     buf_cnt[0] =(PS_DATA_L&0xff00)>>8;
                     buf_cnt[1] = PS_DATA_L&0x00ff;
                     buf_cnt[2] =(PS_DATA_H&0xff00)>>8;
@@ -372,7 +373,7 @@ void Auto_ADJ_PS(void) //10ms
 *****************************************************************************/
 void man_state_update(void)
 {
-    static uint8 TmpA =0,TmpB=0;
+    static uint8 TmpA =0,TmpB=0,TmpC = 0;
     if((PS_DATA >= PS_DATA_H)&& (Man_Stay==MAN_IDLE))
     {
         TmpA++;
@@ -380,6 +381,7 @@ void man_state_update(void)
         if(TmpA>=TIMER_Sensitive) //0.2s+延时周期
         {
             TmpA = 0;
+            TmpC =0;
             check_first_flg = 1;
             Man_Stay = MAN_HERE;    //人在洗手
             dbg("man get,%d\r\n",PS_DATA);
@@ -392,8 +394,19 @@ void man_state_update(void)
         if(TmpB >= 8)// 人离开时间为0.4s+延时周期
         {
             TmpB = 0;
+            TmpC =0;
             Man_Stay = MAN_LEAVE; //人洗手离开
             dbg("man leave,%d\r\n",PS_DATA);
+        }
+    }
+    if((PS_DATA <= PS_DATA_L)&&(drv8837_flg==OFF))
+    {
+        TmpC++;
+        if(TmpC>=40)//2     // 2s
+        {
+            TmpC =0;
+            asm("sleep");
+            _nop();
         }
     }
 
@@ -424,6 +437,7 @@ void Task_Chk_Man(void)
         }
         PS_BUF[0]= Get_PS_DATA();
         PS_DATA = PS_AD_AVG(PS_BUF,N);
+        //PS_DATA =Get_PS_DATA();
         BUF_DATA[0]=0x0D;
         BUF_DATA[1]=0x0A;
         BUF_DATA[2]=(PS_DATA&0xFF00)>>8;
@@ -515,6 +529,7 @@ void Task_State_Hal(void)
                     dbg("use def val\r\n");
                     PS_DATA_H = (PS_DEF_DAT + PS_DEF_DAT/20);
                     PS_DATA_L = (PS_DEF_DAT + PS_DEF_DAT/80);//60
+
                 }
                 else
                 {
@@ -522,6 +537,8 @@ void Task_State_Hal(void)
                     PS_DATA_L = ps_adj_user_l;
                     PS_DATA_H = ps_adj_user_h;
                 }
+                LTR507_Write_Byte( PS_THRES_UP_0,PS_DATA_H&0X00FF);    // 设置PS_data 上限阀值
+                LTR507_Write_Byte( PS_THRES_UP_1,((PS_DATA_H&0XFF00)>>8));
                 state = MODE_WORK;
                 LED2_PIN = OFF;
             }

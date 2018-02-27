@@ -41,7 +41,7 @@ uint16 tab1;
 #define   HAL248_PIN    RC5
 #define   HAL248_IN()         {TRISC5 = 1;} //输入
 #define   INTERRUPT_PIN    RA5
-#define   INTERRUPT_IN()      {TRISA5 = 1;} //输入
+#define   INTERRUPT_IN()      {TRISA5 = 1;IOCAN5=1;IOCAP5=0;IOCIE=1;IOCIF=0;} //输入
 /* END:   Added by zgj, 2018/1/22 */
 /*标记位*/
 volatile bit f2s;
@@ -51,6 +51,7 @@ volatile bit check_first_flg =0;
 volatile bit drv8837_flg;
 volatile bit flg_tab0 = 0;
 volatile bit hal248_adj_flg;
+
 
 uint16  BAT_AD_VAL;
 uint8 adj_ok_flg=0;

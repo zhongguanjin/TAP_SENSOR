@@ -1,5 +1,6 @@
 #ifndef _LTR507ALS_H
 #define _LTR507ALS_H
+#include "Task.h"
 
 
 #include    "config.h"

@@ -52,7 +52,6 @@ void Init_Sys(void)
 	INTERRUPT_IN();
 }
 
-
 /*****************************************************************************
  函 数 名  : main
  功能描述  : 主函数
@@ -72,10 +71,13 @@ void main(void)
 {
 	Init_Sys();
 	dbg("init ok\r\n");
+	//WDTCONbits.WDTPS =0x08; // 500ms
+    asm("sleep");
+    _nop();
 	while(1)
 	{
+	#if 1
 	    static uint8 fb_flg = 0;
-        //asm("sleep");
 	    if(state == MODE_ERR)
 	    {
             if(ltr507_init()==OK)
@@ -111,11 +113,13 @@ void main(void)
         if(f1s  == 1)
         {
             f1s  =0;
-            dbg("state:(%d)-bat:(%d)-[%d][%d]-[%d],pin:%d\r\n",state,BAT_AD_VAL,PS_DATA_H,PS_DATA_L,PS_DATA,INTERRUPT_PIN);
+            dbg("state:(%d)-bat:(%d)-[%d][%d]-[%d]\r\n",state,BAT_AD_VAL,PS_DATA_H,PS_DATA_L,PS_DATA);
         }
         /* END:   Added by zgj, 2018/1/3 */
 	    TaskProcess();            // 任务处理
-	    CLRWDT();
+	    //CLRWDT();
+#endif
+
 	}
 }
 
@@ -137,6 +141,10 @@ void main(void)
 void interrupt ISR(void)
 {
 	static uint16 f_1s =0;
+	if(IOCIE && IOCIF && IOCAF5)
+	{
+      IOCAF5 = 0;
+	}
 	if(TMR0IF && TMR0IE)
 	{
 		TMR0IF = 0;

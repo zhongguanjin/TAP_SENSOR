@@ -15,12 +15,14 @@ uint16 Get_PS_DATA(void)
     PS_DAT=((data1&0x07)<<8)+data0;
     return PS_DAT;
 }
+/*
 uint8 get_reg_val(uint8 reg)
 {
   uint8 val =0;
   val=LTR507_Read_Byte(reg);
   return val;
 }
+*/
 /*
 uint16 Get_ALS_DATA(void)
 {

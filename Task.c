@@ -260,10 +260,11 @@ uint16 PS_AD_AVG(uint16 *p,uint8 len)
        {
            ad_min = temp[i];
        }
-        dif_val =ad_max-ad_min;
+        dif_val =(uint8)(ad_max-ad_min);
         sum += temp[i];
     }
-    return (uint16)(sum/len);
+    sum=sum-ad_max-ad_min;
+    return (uint16)(sum/(len-2));
 }
 /*****************************************************************************
  º¯ Êı Ãû  : led2_flash

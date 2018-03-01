@@ -49,7 +49,7 @@ void Init_Sys(void)
     delay_ms(20);
 	Init_TMR0();
 	HAL248_IN(); // 霍尔开关配置成输入
-	INTERRUPT_IN();
+	//INTERRUPT_IN();
 }
 
 
@@ -111,7 +111,7 @@ void main(void)
         if(f1s  == 1)
         {
             f1s  =0;
-            dbg("state:(%d)-bat:(%d)-[%d][%d]-[%d],pin:%d\r\n",state,BAT_AD_VAL,PS_DATA_H,PS_DATA_L,PS_DATA,INTERRUPT_PIN);
+            dbg("state:(%d)-bat:(%d)-[%d][%d]-[%d]\r\n",state,BAT_AD_VAL,PS_DATA_H,PS_DATA_L,PS_DATA);
         }
         /* END:   Added by zgj, 2018/1/3 */
 	    TaskProcess();            // 任务处理

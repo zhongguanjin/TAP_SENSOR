@@ -45,6 +45,7 @@ void Init_Sys(void)
     else
     {
         state = MODE_ERR;
+        dbg("state->err\r\n");
     }
     delay_ms(20);
 	Init_TMR0();
@@ -87,6 +88,7 @@ void main(void)
             else
             {
                 state = MODE_ERR;
+                dbg("state->err\r\n");
             }
         }
         if(adj_ok_flg ==1)

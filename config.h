@@ -43,7 +43,7 @@ typedef union {
 
 
 
-#define DEBUG 					1//串口调试
+#define DEBUG 					0//串口调试
 
 /*0-初始化，1-电源检测，2-红外自动调准，3-工作检测模式 */
 typedef enum

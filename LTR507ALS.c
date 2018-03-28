@@ -121,8 +121,8 @@ uint8 ltr507_init(void)
     delay_ms(20);
     //设置led的电流及频率 DEFAULT
     ps_led_ctr(LED_FREQ_60K, LED_CUR_50MA);
-    LTR507_Write_Byte( PS_N_PULSES,0x7F);       // 设置LED发射脉冲数 127
-    LTR507_Write_Byte( PS_MEAS_RATE,0x03);      //设置PS测量速率 100ms
+    LTR507_Write_Byte( PS_N_PULSES,0x7f);       // 设置LED发射脉冲数 127
+    LTR507_Write_Byte( PS_MEAS_RATE,0x01);      //设置PS测量速率 50ms
     LTR507_Write_Byte( ALS_MEAS_RATE,0X82);     //设置ALS ADC 分辨率 16bit 500ms
     LTR507_Write_Byte( ALS_COEFF1_DATA_0,0X80);    // 设置ALS_DATA_CH1的序数
     LTR507_Write_Byte( ALS_COEFF1_DATA_1,0X03);    // 设置ALS_DATA_CH1的序数

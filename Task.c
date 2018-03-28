@@ -31,7 +31,7 @@ void led2_flash(void);
 TASK_COMPONENTS TaskComps[] =
 {
     {0, 10, 10, Task_State_Hal},            // 检测         10mS检测一次
-    {0, 50, 50,  Task_Chk_Man},            // 检测人           100ms检测一次
+    {0, 50, 50,  Task_Chk_Man},            // 检测人        50ms检测一次
 };
 
 typedef enum _TASK_LIST
@@ -139,7 +139,7 @@ void  DRV_8837_CTR(uint8 mode)
         DRV_IN2_PIN =0;
 	    DRV_SLEEP_PIN = 0; //进入sleep
     }
-     if(mode == OPEN_8837)
+    if(mode == OPEN_8837)
 	{
         drv8837_flg =ON;
         DRV_SLEEP_PIN = 1;
@@ -169,7 +169,6 @@ void  DRV_8837_CTR(uint8 mode)
     修改内容   : 新生成函数
 
 *****************************************************************************/
-
 int16 iabs(int16 a)
 {
     if(a<0)
@@ -196,7 +195,6 @@ int16 iabs(int16 a)
     修改内容   : 新生成函数
 
 *****************************************************************************/
-
 void drain_check (void)
 {
     static uint16 Timer_Stay =0;
@@ -222,6 +220,8 @@ void drain_check (void)
          Timer_Stay = 0;
          Man_Stay = MAN_IDLE;
          DRV_8837_CTR(CLOSE_8837);
+         ps_contr_mode(STANDY_MODE);
+         //delay_ms(20);
          asm("sleep");
          _nop();
     }
@@ -261,8 +261,8 @@ uint16 PS_AD_AVG(uint16 *p,uint8 len)
        {
            ad_min = temp[i];
        }
-        dif_val =ad_max-ad_min;
-        sum += temp[i];
+       dif_val =ad_max-ad_min;
+       sum += temp[i];
     }
     return (uint16)(sum/len);
 }
@@ -310,7 +310,6 @@ void led2_flash(void)
     修改内容   : 新生成函数
 
 *****************************************************************************/
-
 void Auto_ADJ_PS(void) //10ms
 {
 	static uint16 PS_ADJ_DATA=0;
@@ -402,14 +401,15 @@ void man_state_update(void)
     if((PS_DATA <= PS_DATA_L)&&(drv8837_flg==OFF))
     {
         TmpC++;
-        if(TmpC>=40)//2     // 2s
+        if(TmpC>=1)//2     // 50ms
         {
             TmpC =0;
+            ps_contr_mode(STANDY_MODE);
+            //delay_ms(20);
             asm("sleep");
             _nop();
         }
     }
-
 }
 
 /*****************************************************************************
@@ -563,7 +563,6 @@ void Task_State_Hal(void)
                 			 DRV_8837_CTR(CLOSE_8837);
                 		}
     				}
-
     			}
     			else
     			{

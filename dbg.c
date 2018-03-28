@@ -509,7 +509,7 @@ void  my_printf(const char *pFormat, ...)
 
  void my_dbg(const char *pFormat, ...)
  {
- #if 1
+ #if 0
      va_list ap;
      signed int result;
      char rt_log_buf[DBG_CONSOLEBUF_SIZE];

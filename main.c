@@ -49,7 +49,7 @@ void Init_Sys(void)
     delay_ms(20);
 	Init_TMR0();
 	HAL248_IN(); // 霍尔开关配置成输入
-	INTERRUPT_IN();
+	//INTERRUPT_IN();
 }
 
 /*****************************************************************************
@@ -71,7 +71,7 @@ void main(void)
 {
 	Init_Sys();
 	dbg("init ok\r\n");
-	//WDTCONbits.WDTPS =0x08; // 500ms
+	WDTCONbits.WDTPS =0x08; // 256ms
     asm("sleep");
     _nop();
 	while(1)
@@ -117,9 +117,14 @@ void main(void)
         }
         /* END:   Added by zgj, 2018/1/3 */
 	    TaskProcess();            // 任务处理
-	    //CLRWDT();
-#endif
-
+	    if(STATUSbits.nTO ==0)
+	    {
+           ps_contr_mode(ACTIVE_MODE);
+           delay_ms(20);
+           dbg("wdt over time\r\n");
+	    }
+	    CLRWDT();
+    #endif
 	}
 }
 
@@ -141,10 +146,12 @@ void main(void)
 void interrupt ISR(void)
 {
 	static uint16 f_1s =0;
+	/*
 	if(IOCIE && IOCIF && IOCAF5)
 	{
       IOCAF5 = 0;
 	}
+	*/
 	if(TMR0IF && TMR0IE)
 	{
 		TMR0IF = 0;

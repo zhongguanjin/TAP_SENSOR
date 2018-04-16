@@ -7,8 +7,8 @@
 uint16 tab1;
 
 
-#define TIMER_Sensitive    4  //人体感应时间0.2s，时基100ms
-#define TIME_OUT		  1200	//智能止水时间1min,时基100ms
+#define TIMER_Sensitive    4  //人体感应时间0.2s，时基50ms
+#define TIME_OUT		  1200	//智能止水时间1min,时基50ms
 
 
 #define PS_MAX_DAT          2000      // 5cm
@@ -42,6 +42,11 @@ uint16 tab1;
 #define   HAL248_IN()         {TRISC5 = 1;} //输入
 #define   INTERRUPT_PIN    RA5
 #define   INTERRUPT_IN()      {TRISA5 = 1;} //输入
+
+// add 信号输出 2018-3-30
+#define     SIG_IO_OUT()        { ANSA1 = 0 ;TRISA1 = 0;}
+#define     SIG_IO_PIN          LATA1
+
 /* END:   Added by zgj, 2018/1/22 */
 /*标记位*/
 volatile bit f2s;

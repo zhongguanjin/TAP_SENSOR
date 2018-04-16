@@ -31,7 +31,7 @@ void led2_flash(void);
 TASK_COMPONENTS TaskComps[] =
 {
     {0, 10, 10, Task_State_Hal},            // 检测         10mS检测一次
-    {0, 50, 50,  Task_Chk_Man},            // 检测人           100ms检测一次
+    {0, 50, 50,  Task_Chk_Man},            // 检测人           50ms检测一次
 };
 
 typedef enum _TASK_LIST
@@ -127,9 +127,9 @@ void  DRV8837_Init( void )
 
 void  DRV_8837_CTR(uint8 mode)
 {
-    //TMR0IE	= 0;
     if(mode == CLOSE_8837 )
     {
+        SIG_IO_PIN =0;
         drv8837_flg =OFF;
         DRV_SLEEP_PIN = 1;
         DRV_IN1_PIN =0;
@@ -137,11 +137,12 @@ void  DRV_8837_CTR(uint8 mode)
         delay_ms(20);
         DRV_IN1_PIN =0;
         DRV_IN2_PIN =0;
-	DRV_SLEEP_PIN = 0; //进入sleep
+	    DRV_SLEEP_PIN = 0; //进入sleep
 
     }
-     if(mode == OPEN_8837)
+    if(mode == OPEN_8837)
 	{
+	    SIG_IO_PIN =1;
         drv8837_flg =ON;
         DRV_SLEEP_PIN = 1;
         DRV_IN1_PIN =1;
@@ -151,8 +152,6 @@ void  DRV_8837_CTR(uint8 mode)
         DRV_IN2_PIN =0;
 		DRV_SLEEP_PIN = 0; //进入sleep
 	}
-	//delay_ms(5);
-	//TMR0IE	= 1;
 }
 
 /*****************************************************************************
@@ -547,7 +546,6 @@ void Task_State_Hal(void)
                 			 DRV_8837_CTR(CLOSE_8837);
                 		}
     				}
-
     			}
     			else
     			{

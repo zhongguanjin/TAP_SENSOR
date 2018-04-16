@@ -50,6 +50,7 @@ void Init_Sys(void)
     delay_ms(20);
 	Init_TMR0();
 	HAL248_IN(); // 霍尔开关配置成输入
+	SIG_IO_OUT();
 	//INTERRUPT_IN();
 }
 

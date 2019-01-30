@@ -48,7 +48,7 @@ static void system_clock_init(void)
 *****************************************************************************/
 void Init_MCU(void)
 {
-	system_clock_init(); //使用内部4M晶振
+	system_clock_init(); //使用内部8M晶振
 	//APFCON0
 	TRISA = 0b11111111;	//PORTA 输入
 	PORTA = 0x00;

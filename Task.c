@@ -56,7 +56,6 @@ typedef enum _TASK_LIST
   1.日    期   : 2017年5月23日 星期二
     作    者   : zgj
     修改内容   : 新生成函数
-
 *****************************************************************************/
 void EepromWriteByte(uint8 addr,uint8 data)
 {
@@ -131,6 +130,7 @@ void  DRV_8837_CTR(uint8 mode)
     {
         SIG_IO_PIN =0;
         drv8837_flg =OFF;
+        LED2_PIN =OFF; //2018-9-13 zgj add test
         DRV_SLEEP_PIN = 1;
         DRV_IN1_PIN =0;
         DRV_IN2_PIN =1;
@@ -144,6 +144,7 @@ void  DRV_8837_CTR(uint8 mode)
 	{
 	    SIG_IO_PIN =1;
         drv8837_flg =ON;
+        LED2_PIN =ON; //2018-9-13 zgj add test
         DRV_SLEEP_PIN = 1;
         DRV_IN1_PIN =1;
         DRV_IN2_PIN =0;
@@ -392,6 +393,7 @@ void man_state_update(void)
         if(TmpB >= 8)// 人离开时间为0.4s+延时周期
         {
             TmpB = 0;
+            LED2_PIN =OFF;//2018-9-13 zgj add test
             Man_Stay = MAN_LEAVE; //人洗手离开
             dbg("man leave,%d\r\n",PS_DATA);
         }

@@ -5,7 +5,6 @@
 //产生IIC起始信号
 void IIC_Start(void)
 {
-
 	SDA_OUT();     //sda线输出
 	IIC_SDA=1;
 	IIC_SCL=1;
@@ -87,7 +86,7 @@ void IIC_NAck(void)
 
 void IIC_Send_Byte(uint8 txd)
 {
- uint8 t;
+    uint8 t;
 	SDA_OUT();
     IIC_SCL=0;//拉低时钟开始数据传输
     for(t=0;t<8;t++)

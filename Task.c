@@ -420,9 +420,9 @@ void Task_Chk_Man(void)
 {
    if(state == MODE_WORK) //工作模式
     {
-        for(uint8 cnt=N;cnt>0;cnt--)
+        for(uint8 cnt=N;cnt>1;cnt--)
         {
-          PS_BUF[cnt]=PS_BUF[cnt-1];
+          PS_BUF[cnt-1]=PS_BUF[cnt-2];
         }
         PS_BUF[0]= Get_PS_DATA();
         PS_DATA = PS_AD_AVG(PS_BUF,N);

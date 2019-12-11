@@ -249,10 +249,10 @@ uint16 PS_AD_AVG(uint16 *p,uint8 len)
     uint16 ad_max,ad_min;
     uint32  sum = 0;
     uint16 *temp =p;
+    ad_max = temp[0];
+    ad_min = temp[1];
     for ( uint8 i=0;i<len;i++)
     {
-        ad_max = temp[0];
-        ad_min = temp[1];
        if(ad_max < temp[i])
        {
            ad_max = temp[i];
